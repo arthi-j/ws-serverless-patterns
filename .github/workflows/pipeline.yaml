@@ -41,6 +41,12 @@ jobs:
       - uses: actions/checkout@v3
       - run: |
           # trigger the tests here
+          echo 'Running unit tests'
+          # Install all dependencies (including dependencies for running tests)
+          pip3 install -r requirements.txt
+          pip3 install -r ./tests/requirements.txt       
+          # Discover and run unit tests in the 'tests/unit' directory
+          python3 -m pytest tests/unit -v
 
   delete-feature:
     if: startsWith(github.event.ref, 'feature') && github.event_name == 'delete'
@@ -198,6 +204,13 @@ jobs:
       - uses: actions/checkout@v3
       - run: |
           # trigger the integration tests here
+          echo 'Running integration tests'
+          # Install all dependencies (including dependencies for running tests)
+          pip3 install -r requirements.txt 
+          pip3 install -r ./tests/requirements.txt 
+          # Discover and run unit tests in the 'tests/unit' directory
+          python3 -m pytest tests/integration -v      
+
 
   deploy-prod:
     if: github.ref == 'refs/heads/main'
