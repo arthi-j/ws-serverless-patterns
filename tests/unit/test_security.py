@@ -11,7 +11,7 @@ from contextlib import contextmanager
 USERS_MOCK_TABLE_NAME = 'Users'
 
 @contextmanager
-def test_environment():
+def mock_test_environment():
     with mock_dynamodb():
         import boto3
         conn = boto3.client('dynamodb')
@@ -28,7 +28,7 @@ class TestInputValidation:
     
     @patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
     def test_sql_injection_attempt_in_userid(self):
-        with test_environment():
+        with mock_test_environment():
             from src.api import users
             event = {
                 'httpMethod': 'GET',
@@ -40,7 +40,7 @@ class TestInputValidation:
     
     @patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
     def test_mass_assignment_vulnerability(self):
-        with test_environment():
+        with mock_test_environment():
             from src.api import users
             malicious_payload = {
                 'name': 'Test User',
@@ -64,20 +64,20 @@ class TestInputValidation:
 class TestErrorHandling:
     """Test error handling scenarios"""
     
-    #@patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
     def test_missing_environment_variable(self):
-        with test_environment():
-            from src.api import users
-            event = {
-                'httpMethod': 'GET',
-                'resource': '/users'
-            }
-            ret = users.lambda_handler(event, '')
-            assert ret['statusCode'] == 400
+        with patch.dict(os.environ, {}, clear=True):
+            with mock_test_environment():
+                from src.api import users
+                event = {
+                    'httpMethod': 'GET',
+                    'resource': '/users'
+                }
+                ret = users.lambda_handler(event, '')
+                assert ret['statusCode'] == 400
     
     @patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
     def test_malformed_path_parameters(self):
-        with test_environment():
+        with mock_test_environment():
             from src.api import users
             event = {
                 'httpMethod': 'GET',
@@ -87,9 +87,9 @@ class TestErrorHandling:
             ret = users.lambda_handler(event, '')
             assert ret['statusCode'] == 400
     
-    @patch.dict(os.environ, {'USERS_TABLE': 'DOES_NOT_EXIST'})
+    @patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
     def test_empty_body_handling(self):
-        with test_environment():
+        with mock_test_environment():
             from src.api import users
             event = {
                 'httpMethod': 'PUT',
@@ -104,7 +104,7 @@ class TestDataSanitization:
     
     @patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
     def test_xss_payload_in_user_data(self):
-        with test_environment():
+        with mock_test_environment():
             from src.api import users
             xss_payload = {
                 'name': '<script>alert("xss")</script>',
@@ -123,7 +123,7 @@ class TestDataSanitization:
     
     @patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
     def test_oversized_payload(self):
-        with test_environment():
+        with mock_test_environment():
             from src.api import users
             large_payload = {
                 'name': 'A' * 10000,  # Very large name
@@ -143,7 +143,7 @@ class TestAuthorizationBypass:
     
     @patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
     def test_userid_manipulation(self):
-        with test_environment():
+        with mock_test_environment():
             from src.api import users
             # Attempt to access another user's data
             event = {
@@ -156,7 +156,7 @@ class TestAuthorizationBypass:
     
     @patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
     def test_path_traversal_attempt(self):
-        with test_environment():
+        with mock_test_environment():
             from src.api import users
             event = {
                 'httpMethod': 'GET',
