@@ -1,0 +1,1 @@
+aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH --client-id 73ula4er88ncm4oo0qgc3pfj3n --auth-parameters USERNAME=jagaarth@amazon.com,PASSWORD='@LimaBean!1' --query 'AuthenticationResult.AccessToken' --output text
