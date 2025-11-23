@@ -64,7 +64,7 @@ class TestInputValidation:
 class TestErrorHandling:
     """Test error handling scenarios"""
     
-    @patch.dict(os.environ, {'USERS_TABLE': None})
+    @patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
     def test_missing_environment_variable(self):
         with test_environment():
             from src.api import users

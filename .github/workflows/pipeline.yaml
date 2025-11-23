@@ -202,9 +202,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: |
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.TESTING_REGION }}
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: testing-deployment
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Run integration tests
+        run: |
           # trigger the integration tests here
           echo 'Running integration tests'
+          export AWS_DEFAULT_REGION=us-west-2
           # Install all dependencies (including dependencies for running tests)
           pip3 install -r requirements.txt 
           pip3 install -r ./tests/requirements.txt 
