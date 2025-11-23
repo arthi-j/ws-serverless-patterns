@@ -64,7 +64,7 @@ class TestInputValidation:
 class TestErrorHandling:
     """Test error handling scenarios"""
     
-    @patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
+    #@patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
     def test_missing_environment_variable(self):
         with test_environment():
             from src.api import users
@@ -87,7 +87,7 @@ class TestErrorHandling:
             ret = users.lambda_handler(event, '')
             assert ret['statusCode'] == 400
     
-    @patch.dict(os.environ, {'USERS_TABLE': USERS_MOCK_TABLE_NAME})
+    @patch.dict(os.environ, {'USERS_TABLE': 'DOES_NOT_EXIST'})
     def test_empty_body_handling(self):
         with test_environment():
             from src.api import users
