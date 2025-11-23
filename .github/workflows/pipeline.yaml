@@ -42,6 +42,7 @@ jobs:
       - run: |
           # trigger the tests here
           echo 'Running unit tests'
+          export AWS_DEFAULT_REGION=us-west-2
           # Install all dependencies (including dependencies for running tests)
           pip3 install -r requirements.txt
           pip3 install -r ./tests/requirements.txt       
