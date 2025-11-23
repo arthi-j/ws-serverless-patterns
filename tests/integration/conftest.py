@@ -5,6 +5,8 @@ import boto3
 import os
 import pytest
 import time
+import string
+import secrets
 
 boto3.setup_default_session(region_name='us-west-2')
 APPLICATION_STACK_NAME = os.getenv('ENV_STACK_NAME', 'ws-serverless-patterns-dev')
@@ -20,15 +22,19 @@ def get_stack_outputs(stack_name):
         result[output["OutputKey"]] = output["OutputValue"]
     return result
 
+def generate_password():
+    """Generate a secure random password without using Secrets Manager"""
+    alphabet = string.ascii_letters + string.digits + '!@#$%^&*'
+    password = ''.join(secrets.choice(alphabet) for _ in range(12))
+    # Ensure it has at least one of each required type
+    return 'Test123!' + password[:4]
+
 def create_cognito_accounts():
     result = {}
-    sm_client = boto3.client('secretsmanager')
     idp_client = boto3.client('cognito-idp')
     # create regular user account
-    sm_response = sm_client.get_random_password(ExcludeCharacters='"''`[]{}():;,$/\\<>|=&',
-                                                RequireEachIncludedType=True)
     result["regularUserName"] = "regularUser@example.com"
-    result["regularUserPassword"] = sm_response["RandomPassword"]
+    result["regularUserPassword"] = generate_password()
     try:
         idp_client.admin_delete_user(UserPoolId=globalConfig["UserPool"],
                                      Username=result["regularUserName"])
@@ -56,10 +62,8 @@ def create_cognito_accounts():
     result["regularUserAccessToken"] = idp_response["AuthenticationResult"]["AccessToken"]
     result["regularUserRefreshToken"] = idp_response["AuthenticationResult"]["RefreshToken"]
     # create administrative user account
-    sm_response = sm_client.get_random_password(ExcludeCharacters='"''`[]{}():;,$/\\<>|=&',
-                                                RequireEachIncludedType=True)
     result["adminUserName"] = "adminUser@example.com"
-    result["adminUserPassword"] = sm_response["RandomPassword"]
+    result["adminUserPassword"] = generate_password()
     try:
         idp_client.admin_delete_user(UserPoolId=globalConfig["UserPool"],
                                      Username=result["adminUserName"])
