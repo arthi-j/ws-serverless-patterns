@@ -65,8 +65,9 @@ class TestErrorHandling:
     """Test error handling scenarios"""
     
     def test_missing_environment_variable(self):
-        with patch.dict(os.environ, {}, clear=True):
-            with mock_test_environment():
+        with patch.dict(os.environ, {'AWS_DEFAULT_REGION': 'us-east-1'}, clear=True):
+            # Don't create DynamoDB table to simulate missing table
+            with mock_dynamodb():
                 from src.api import users
                 event = {
                     'httpMethod': 'GET',
